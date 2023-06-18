@@ -1,0 +1,8 @@
+USE master;
+GO
+
+CREATE PROCEDURE dbo.Ping
+AS
+BEGIN
+    SELECT 'Pong';
+END
