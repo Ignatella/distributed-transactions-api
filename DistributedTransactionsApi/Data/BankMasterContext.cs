@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using DistributedTransactionsApi.Data.Models;
+﻿using System;
+using System.Collections.Generic;
+using DistributedTransactionsApi.Data.Models.Master;
+using Microsoft.EntityFrameworkCore;
 
 namespace DistributedTransactionsApi.Data;
 
 public partial class BankMasterContext : DbContext
 {
-    public BankMasterContext()
-    {
-    }
-
     public BankMasterContext(DbContextOptions<BankMasterContext> options)
         : base(options)
     {
@@ -20,9 +18,7 @@ public partial class BankMasterContext : DbContext
 
     public virtual DbSet<Department> Departments { get; set; }
 
-    public virtual DbSet<Transaction> Transactions { get; set; }
-
-    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<MasterUser> MasterUsers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -78,69 +74,44 @@ public partial class BankMasterContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.DbCode)
-                .IsRequired()
-                .HasMaxLength(50)
-                .IsUnicode(false);
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(150)
                 .IsUnicode(false);
         });
 
-        modelBuilder.Entity<Transaction>(entity =>
-        {
-            entity.HasKey(e => e.TransactionId).HasName("PK__Transact__55433A6B1A24007E");
-
-            entity.ToTable("Transaction");
-
-            entity.Property(e => e.TransactionId).HasDefaultValueSql("(newid())");
-            entity.Property(e => e.Amount).HasColumnType("money");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getutcdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Description)
-                .HasMaxLength(150)
-                .IsUnicode(false);
-
-            entity.HasOne(d => d.FromUser).WithMany(p => p.TransactionFromUsers)
-                .HasForeignKey(d => d.FromUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Transaction_User_From");
-
-            entity.HasOne(d => d.ToUser).WithMany(p => p.TransactionToUsers)
-                .HasForeignKey(d => d.ToUserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Transaction_User_To");
-        });
-
-        modelBuilder.Entity<User>(entity =>
+        modelBuilder.Entity<MasterUser>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("PK__User__1788CC4C0EB0D719");
 
-            entity.ToTable("User");
+            entity.ToTable("MasterUser");
 
             entity.Property(e => e.UserId).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getutcdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.FirstName)
-                .IsRequired()
-                .HasMaxLength(150)
-                .IsUnicode(false);
-            entity.Property(e => e.LastName)
-                .IsRequired()
-                .HasMaxLength(150)
-                .IsUnicode(false);
-            entity.Property(e => e.PhoneNumber)
-                .IsRequired()
-                .HasMaxLength(20)
-                .IsUnicode(false);
 
-            entity.HasOne(d => d.Department).WithMany(p => p.Users)
+            entity.HasOne(d => d.Department).WithMany(p => p.MasterUsers)
                 .HasForeignKey(d => d.DepartmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_User_Department");
+
+            entity.HasMany(d => d.Accounts).WithMany(p => p.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "UserAccount",
+                    r => r.HasOne<Account>().WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_UserAccount_Account"),
+                    l => l.HasOne<MasterUser>().WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_UserAccount_User"),
+                    j =>
+                    {
+                        j.HasKey("UserId", "AccountId").HasName("PK__UserAcco__64C11616A5B53EFB");
+                        j.ToTable("UserAccount");
+                    });
         });
 
         OnModelCreatingPartial(modelBuilder);

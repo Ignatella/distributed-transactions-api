@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DistributedTransactionsApi.Data.Models;
+namespace DistributedTransactionsApi.Data.Models.Master;
 
 public partial class Department
 {
@@ -9,11 +9,9 @@ public partial class Department
 
     public string Code { get; set; }
 
-    public string DbCode { get; set; }
-
     public string Name { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<MasterUser> MasterUsers { get; } = new List<MasterUser>();
 }

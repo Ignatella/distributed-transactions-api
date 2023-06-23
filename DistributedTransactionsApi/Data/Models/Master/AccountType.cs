@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DistributedTransactionsApi.Data.Models;
+namespace DistributedTransactionsApi.Data.Models.Master;
 
 public partial class AccountType
 {
@@ -11,5 +11,5 @@ public partial class AccountType
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
+    public virtual ICollection<Account> Accounts { get; } = new List<Account>();
 }

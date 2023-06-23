@@ -1,7 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace DistributedTransactionsApi.DependencyInjection;
+namespace DistributedTransactionsApi.Core;
 
 internal static class ExceptionHandler
 {

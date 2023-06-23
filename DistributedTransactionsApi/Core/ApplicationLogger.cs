@@ -2,9 +2,9 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 
-namespace DistributedTransactionsApi.DependencyInjection;
+namespace DistributedTransactionsApi.Core;
 
-internal static class BankLogger
+internal static class ApplicationLogger
 {
     public static ConfigureHostBuilder UseLogging(this ConfigureHostBuilder host, ConfigurationManager configuration)
     {

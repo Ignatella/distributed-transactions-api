@@ -1,6 +1,6 @@
 using Microsoft.OpenApi.Models;
 
-namespace DistributedTransactionsApi.DependencyInjection;
+namespace DistributedTransactionsApi.Core;
 
 internal static class Swagger
 {
@@ -21,14 +21,15 @@ internal static class Swagger
                         TokenUrl = new Uri(@"https://yermakovich.com/identity/connect/token"),
                         Scopes = new Dictionary<string, string>()
                         {
-                            { "roles", "roles" }, { "email", "email" }, { "profile", "profile" },
+                            { "roles", "roles" },
+                            { "email", "email" },
+                            { "profile", "profile" },
                             { "openid", "openid" },
                             { "distributed-transactions-api", "distributed-transactions-api" }
                         }
                     },
                 },
                 Type = SecuritySchemeType.OAuth2,
-                OpenIdConnectUrl = new Uri(@"https://yermakovich.com/identity/.well-known/openid-configuration"),
             };
 
             options.AddSecurityDefinition("OAuth", scheme);
@@ -48,6 +49,7 @@ internal static class Swagger
         return services;
     }
 
+    // ReSharper disable once InconsistentNaming
     public static IApplicationBuilder UseApplicationSwaggerUI(this IApplicationBuilder app)
     {
         app.UseSwaggerUI(options =>

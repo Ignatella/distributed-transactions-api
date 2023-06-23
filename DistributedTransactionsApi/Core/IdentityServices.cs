@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-namespace DistributedTransactionsApi.DependencyInjection;
+namespace DistributedTransactionsApi.Core;
 
 internal static class IdentityServices
 {

@@ -1,13 +1,20 @@
-using DistributedTransactionsApi.DependencyInjection;
+using DistributedTransactionsApi.Core;
+using DistributedTransactionsApi.Services;
 using DistributedTransactionsApi.Shared;
+using DistributedTransactionsApi.Utilities;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddApplicationDbContexts(builder.Configuration);
-builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<UserUtility>();
+
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

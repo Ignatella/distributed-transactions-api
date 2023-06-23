@@ -1,7 +1,7 @@
 using DistributedTransactionsApi.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace DistributedTransactionsApi.DependencyInjection;
+namespace DistributedTransactionsApi.Core;
 
 internal static class ApplicationDbContexts
 {
@@ -16,8 +16,10 @@ internal static class ApplicationDbContexts
 
         services.AddTransient<Func<string, BankLeafContext>>((provider) =>
         {
-            return (connectionString) =>
+            return (leafCode) =>
             {
+                var connectionString = configuration.GetConnectionString(leafCode);
+
                 var options = new DbContextOptionsBuilder<BankLeafContext>()
                     .UseSqlServer(connectionString)
                     .Options;

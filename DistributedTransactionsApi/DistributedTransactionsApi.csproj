@@ -32,9 +32,4 @@
       </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Data\" />
-      <Folder Include="Dtos\" />
-    </ItemGroup>
-
 </Project>
