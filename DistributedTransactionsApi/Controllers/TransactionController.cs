@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace distributed_transactions.Controllers;
+namespace DistributedTransactionsApi.Controllers;
 
 [Route("api/[controller]")]
 [Authorize]

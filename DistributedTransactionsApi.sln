@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "distributed-transactions", "distributed-transactions\distributed-transactions.csproj", "{21C7CB0F-B103-49F4-BCCD-81625BA2EA21}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedTransactionsApi", "DistributedTransactionsApi\DistributedTransactionsApi.csproj", "{21C7CB0F-B103-49F4-BCCD-81625BA2EA21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
