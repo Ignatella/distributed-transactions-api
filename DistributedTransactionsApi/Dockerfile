@@ -1,20 +1,19 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/nightly/aspnet:8.0-preview AS base
 WORKDIR /app
 EXPOSE 80
-EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/nightly/sdk:8.0-preview AS build
 WORKDIR /src
-COPY ["distributed-transactions/distributed-transactions.csproj", "distributed-transactions/"]
-RUN dotnet restore "distributed-transactions/distributed-transactions.csproj"
-COPY . .
-WORKDIR "/src/distributed-transactions"
-RUN dotnet build "distributed-transactions.csproj" -c Release -o /app/build
+COPY ["DistributedTransactionsApi.csproj", "DistributedTransactionsApi/DistributedTransactionsApi.csproj"]
+RUN dotnet restore "DistributedTransactionsApi/DistributedTransactionsApi.csproj"
+COPY . DistributedTransactionsApi/
+WORKDIR "/src/DistributedTransactionsApi"
+RUN dotnet build "DistributedTransactionsApi.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "distributed-transactions.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "DistributedTransactionsApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "distributed-transactions.dll"]
+ENTRYPOINT ["dotnet", "DistributedTransactionsApi.dll"]
