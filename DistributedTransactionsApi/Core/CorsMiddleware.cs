@@ -17,9 +17,8 @@ public class CorsMiddleware
     private Task BeginInvoke(HttpContext context)
     {
         context.Response.Headers.Add("Access-Control-Allow-Origin", new[] { "*" });
-        context.Response.Headers.Add("Access-Control-Allow-Headers",
-            new[] { "Origin, X-Requested-With, Content-Type, Accept" });
-        context.Response.Headers.Add("Access-Control-Allow-Methods", new[] { "GET, POST, PUT, DELETE, OPTIONS" });
+        context.Response.Headers.Add("Access-Control-Allow-Headers", new[] { "*" });
+        context.Response.Headers.Add("Access-Control-Allow-Methods", new[] { "*" });
         context.Response.Headers.Add("Access-Control-Allow-Credentials", new[] { "true" });
 
         return _next.Invoke(context);

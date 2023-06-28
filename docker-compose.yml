@@ -5,7 +5,7 @@ services:
     build: 
       context: DistributedTransactionsApi
       dockerfile: Dockerfile
-    image: distributed-transactions-api:v0.0.4
+    image: distributed-transactions-api:v0.0.5
     pull_policy: build
     ports: 
       - "127.0.0.1:${PORT:-8000}:8080"
