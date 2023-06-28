@@ -29,12 +29,12 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseGlobalExceptionHandler();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseApplicationSwaggerUI();
-}
+//
+// if (app.Environment.IsDevelopment())
+// {
+app.UseSwagger();
+app.UseApplicationSwaggerUI();
+// }
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
