@@ -26,7 +26,7 @@ public class UserUtility
 
     public async Task<MasterUser> GetMasterUserAsync()
     {
-        return await _masterContext.MasterUsers.Include(u => u.Department).SingleAsync(u => u.UserId == UserId);
+        return await _masterContext.MasterUsers.Include(u => u.Department).FirstOrDefaultAsync(u => u.UserId == UserId);
     }
 
     public async Task<BankLeafContext> GetUserLeafContextAsync()
