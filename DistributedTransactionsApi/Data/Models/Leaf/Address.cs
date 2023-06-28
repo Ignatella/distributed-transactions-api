@@ -17,5 +17,7 @@ public partial class Address
 
     public string FlatNumber { get; set; }
 
+    public DateTime? CreatedAt { get; set; }
+
     public virtual ICollection<LeafUser> LeafUsers { get; } = new List<LeafUser>();
 }

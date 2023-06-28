@@ -31,7 +31,7 @@ public partial class BankMasterContext : DbContext
             entity.Property(e => e.AccountId).HasDefaultValueSql("(newid())");
             entity.Property(e => e.AccountNumber)
                 .IsRequired()
-                .HasMaxLength(16)
+                .HasMaxLength(26)
                 .IsUnicode(false);
             entity.Property(e => e.Balance).HasColumnType("money");
             entity.Property(e => e.CreatedAt)
@@ -42,6 +42,10 @@ public partial class BankMasterContext : DbContext
                 .HasForeignKey(d => d.AccountTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Account_AccountType");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Accounts)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_Account_User");
         });
 
         modelBuilder.Entity<AccountType>(entity =>
@@ -95,23 +99,6 @@ public partial class BankMasterContext : DbContext
                 .HasForeignKey(d => d.DepartmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_User_Department");
-
-            entity.HasMany(d => d.Accounts).WithMany(p => p.Users)
-                .UsingEntity<Dictionary<string, object>>(
-                    "UserAccount",
-                    r => r.HasOne<Account>().WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_UserAccount_Account"),
-                    l => l.HasOne<MasterUser>().WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_UserAccount_User"),
-                    j =>
-                    {
-                        j.HasKey("UserId", "AccountId").HasName("PK__UserAcco__64C11616A5B53EFB");
-                        j.ToTable("UserAccount");
-                    });
         });
 
         OnModelCreatingPartial(modelBuilder);

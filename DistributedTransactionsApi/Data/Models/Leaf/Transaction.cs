@@ -7,9 +7,9 @@ public partial class Transaction
 {
     public Guid TransactionId { get; set; }
 
-    public Guid FromAccountId { get; set; }
+    public Guid? FromAccountId { get; set; }
 
-    public Guid ToAccountId { get; set; }
+    public Guid? ToAccountId { get; set; }
 
     public decimal Amount { get; set; }
 

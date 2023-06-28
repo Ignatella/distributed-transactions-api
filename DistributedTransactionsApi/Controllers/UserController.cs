@@ -43,7 +43,7 @@ public class UserController : ControllerBase
     [HttpGet("Department")]
     public async Task<IActionResult> GetUserDepartment()
     {
-        var department = await _userService.GetUserDepartmentAsync(_userUtility.UserId);
+        var department = await _userService.GetUserDepartmentAsync();
 
         if (department is null) return NotFound();
 
@@ -51,23 +51,34 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("Accounts")]
-    public async void GetAccounts()
+    public async Task<IActionResult> GetAccounts()
     {
-        await Task.CompletedTask;
+        var user = await _userUtility.GetMasterUserAsync();
+
+        if (user is null) return NotFound();
+
+        var accounts = await _userService.GetUserAccountsAsync();
+
+        return Ok(_mapper.Map<IEnumerable<AccountDto>>(accounts));
     }
 
     [HttpGet("Transactions")]
-    public async void GetTransactions()
+    public async Task<IActionResult> GetTransactions()
     {
-        await Task.CompletedTask;
+        var user = await _userUtility.GetMasterUserAsync();
+
+        if (user is null) return NotFound();
+
+        var transactions = await _userService.GetUserTransactionsAsync();
+
+        return Ok(_mapper.Map<IEnumerable<TransactionDto>>(transactions));
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] UserCreateDto userCreateDto)
     {
-        var user = _mapper.Map<LeafUser>(userCreateDto);
-        // ToDO: pass as map parameter
-        user.UserId = _userUtility.UserId;
+        var user = _mapper.Map<LeafUser>(userCreateDto,
+            opt => opt.AfterMap((_, dest) => dest.UserId = _userUtility.UserId));
 
         await _userService.CreateUserAsync(user);
 

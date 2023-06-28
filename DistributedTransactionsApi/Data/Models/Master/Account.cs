@@ -15,7 +15,9 @@ public partial class Account
 
     public DateTime CreatedAt { get; set; }
 
+    public Guid UserId { get; set; }
+
     public virtual AccountType AccountType { get; set; }
 
-    public virtual ICollection<MasterUser> Users { get; } = new List<MasterUser>();
+    public virtual MasterUser User { get; set; }
 }

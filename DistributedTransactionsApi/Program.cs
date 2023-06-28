@@ -15,6 +15,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<UserUtility>();
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<DepartmentService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -31,6 +31,9 @@ public partial class BankLeafContext : DbContext
                 .IsRequired()
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getutcdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.FlatNumber)
                 .HasMaxLength(10)
                 .IsUnicode(false);

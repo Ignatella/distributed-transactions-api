@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using DistributedTransactionsApi.Data;
 using DistributedTransactionsApi.Data.Models.Master;
+using Microsoft.EntityFrameworkCore;
 
 namespace DistributedTransactionsApi.Utilities;
 
@@ -25,7 +26,7 @@ public class UserUtility
 
     public async Task<MasterUser> GetMasterUserAsync()
     {
-        return await _masterContext.MasterUsers.FindAsync(UserId);
+        return await _masterContext.MasterUsers.Include(u => u.Department).SingleAsync(u => u.UserId == UserId);
     }
 
     public async Task<BankLeafContext> GetUserLeafContextAsync()
@@ -38,7 +39,7 @@ public class UserUtility
         return _leafContextFactory(departmentCode);
     }
 
-    public async Task<BankLeafContext> GetUserLeafContextAsync(Guid departmentId)
+    public async Task<BankLeafContext> GetLeafContextAsync(Guid departmentId)
     {
         var department = await _masterContext.Departments.FindAsync(departmentId);
         if (department == null) throw new ApplicationException("Department not found");

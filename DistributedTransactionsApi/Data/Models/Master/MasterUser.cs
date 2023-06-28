@@ -11,7 +11,7 @@ public partial class MasterUser
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual Department Department { get; set; }
-
     public virtual ICollection<Account> Accounts { get; } = new List<Account>();
+
+    public virtual Department Department { get; set; }
 }
