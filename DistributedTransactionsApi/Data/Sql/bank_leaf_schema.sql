@@ -39,7 +39,7 @@ create table [Transaction]
 go
 
 
-CREATE    PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
+CREATE      PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
                                     @toAccountNumber VARCHAR(26),
                                     @amount money, @description varchar(150) = NULL)
 AS
@@ -53,10 +53,10 @@ BEGIN
 
     COMMIT TRANSACTION;
 end;
-
 go
 
-CREATE    PROCEDURE uspGetUserAccounts(@userId uniqueidentifier)
+
+CREATE      PROCEDURE uspGetUserAccounts(@userId uniqueidentifier)
 AS
 BEGIN
     set xact_abort on;
@@ -68,7 +68,8 @@ BEGIN
 end
 go
 
-CREATE    PROCEDURE uspGetUserTransactions(@userId uniqueidentifier)
+
+CREATE     PROCEDURE uspGetUserTransactions(@userId uniqueidentifier)
     AS
     BEGIN
         set xact_abort on;
@@ -94,7 +95,7 @@ CREATE    PROCEDURE uspGetUserTransactions(@userId uniqueidentifier)
 go
 
 
-CREATE      PROCEDURE uspSystemCreateTransaction(@fromAccountId uniqueidentifier, @toAccountId uniqueidentifier,
+CREATE       PROCEDURE uspSystemCreateTransaction(@fromAccountId uniqueidentifier, @toAccountId uniqueidentifier,
                                                  @amount money, @description varchar(150) = null)
 AS
 BEGIN
@@ -105,17 +106,9 @@ end;
 
 go
 
-create   proc uspTest (@wow uniqueidentifier)
-as
-begin
-
-    select 'hello world';
-
-end
-go
 
 
-CREATE PROCEDURE uspUserCreate(@userId uniqueidentifier, @phoneNumber varchar(20),
+CREATE   PROCEDURE uspUserCreate(@userId uniqueidentifier, @phoneNumber varchar(20),
                                          @postalCode varchar(10),
                                          @city varchar(100), @street varchar(100), @houseNumber varchar(10),
                                          @flatNumber varchar(10))

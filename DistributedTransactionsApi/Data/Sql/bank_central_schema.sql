@@ -47,7 +47,7 @@ create table Account
 go
 
 
-CREATE   PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
+CREATE    PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
                                                @toAccountNumber VARCHAR(26),
                                                @amount money, @description varchar(150) = NULL)
 AS
@@ -89,13 +89,13 @@ BEGIN
     declare @fromAccountId uniqueidentifier = (select AccountId from Account where AccountNumber = @fromAccountNumber);
     declare @toAccountId uniqueidentifier = (select AccountId from Account where AccountNumber = @toAccountNumber);
 
+    declare @userFromId uniqueidentifier = (select UserId from Account where AccountNumber = @fromAccountNumber);
     declare @userFromLeaf varchar(50) = (select Code
                                          from MasterUser u
                                                   join Department D on u.DepartmentId = D.DepartmentId
-                                         where UserId = @initiatorUserId);
+                                         where UserId = @userFromId);
 
     declare @userToId uniqueidentifier = (select UserId from Account where AccountNumber = @toAccountNumber);
-
     declare @userToLeaf varchar(50) = (select Code
                                        from MasterUser u
                                                 join Department D on u.DepartmentId = D.DepartmentId
@@ -122,7 +122,7 @@ BEGIN
             update Account SET Balance = @currentFromAccountBalance - @amount WHERE AccountNumber = @fromAccountNumber;
         end
 
-    if @toAccountNumber is not null and @userFromLeaf != @userToLeaf
+    if @toAccountNumber is not null and /* is not transaction in the same leaf */ (@fromAccountNumber is null or @userFromLeaf != @userToLeaf)
         begin
             -- create transactions
             set @dynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @userToLeaf + ';';
