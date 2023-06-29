@@ -46,6 +46,7 @@ create table Account
 )
 go
 
+
 CREATE   PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
                                                @toAccountNumber VARCHAR(26),
                                                @amount money, @description varchar(150) = NULL)
@@ -56,34 +57,55 @@ BEGIN
 
     BEGIN DISTRIBUTED TRANSACTION;
 
+    declare @currentFromAccountBalance double precision = (select Balance from Account where AccountNumber = @fromAccountNumber);
+    declare @currentToAccountBalance double precision = (select Balance from Account where AccountNumber = @toAccountNumber);
+
+    -- transfer to the same account
+    IF @fromAccountNumber = @toAccountNumber
+        BEGIN
+            THROW 51001, 'Source and destination accounts are the same', 1;
+        end
+
     -- from account should belong to the initiator
     IF @fromAccountNumber is NOT NULL AND
        NOT EXISTS(SELECT * FROM Account A WHERE A.AccountNumber = @fromAccountNumber AND A.UserId = @initiatorUserId)
         BEGIN
-            THROW 51001, 'Account does not belong to the user', 1;
+            THROW 51002, 'Account does not belong to the user', 1;
         end
 
     -- if user deposit money it should be done on his account
     IF @fromAccountNumber is NULL AND
        NOT EXISTS(SELECT * FROM Account A WHERE A.AccountNumber = @toAccountNumber AND A.UserId = @initiatorUserId)
         BEGIN
-            THROW 51002, 'Account does not belong to the user', 1;
+            THROW 51003, 'Account does not belong to the user', 1;
+        end
+
+    -- if not enough money
+    if @currentFromAccountBalance - @amount < 0
+        begin
+            THROW 51004, 'Insufficient funds in the account.', 1;
         end
 
     declare @fromAccountId uniqueidentifier = (select AccountId from Account where AccountNumber = @fromAccountNumber);
     declare @toAccountId uniqueidentifier = (select AccountId from Account where AccountNumber = @toAccountNumber);
 
-    declare @currentFromAccountBalance double precision = (select Balance from Account where AccountNumber = @fromAccountNumber);
-    declare @currentToAccountBalance double precision = (select Balance from Account where AccountNumber = @toAccountNumber);
+    declare @userFromLeaf varchar(50) = (select Code
+                                         from MasterUser u
+                                                  join Department D on u.DepartmentId = D.DepartmentId
+                                         where UserId = @initiatorUserId);
 
-    if @currentFromAccountBalance - @amount < 0
-        begin
-            THROW 51003, 'Insufficient funds in the account.', 1;
-        end
+    declare @userToId uniqueidentifier = (select UserId from Account where AccountNumber = @toAccountNumber);
+
+    declare @userToLeaf varchar(50) = (select Code
+                                       from MasterUser u
+                                                join Department D on u.DepartmentId = D.DepartmentId
+                                       where UserId = @userToId);
 
     declare @sql varchar(max) = N'EXEC uspSystemCreateTransaction ' +
-                                N'@fromAccountId=' + coalesce('''' + convert(varchar(36), @fromAccountId) + '''', 'null') + ', ' +
-                                N'@toAccountId=' + coalesce('''' + convert(varchar(50), @toAccountId) + '''', 'null') + ', ' +
+                                N'@fromAccountId=' +
+                                coalesce('''' + convert(varchar(36), @fromAccountId) + '''', 'null') + ', ' +
+                                N'@toAccountId=' + coalesce('''' + convert(varchar(50), @toAccountId) + '''', 'null') +
+                                ', ' +
                                 N'@amount=' + convert(varchar(max), @amount) + ', ' +
                                 N'@description=' + coalesce('''' + @description + '''', 'null') + ';';
 
@@ -93,11 +115,6 @@ BEGIN
         begin
 
             -- create transactions
-            declare @userFromLeaf varchar(50) = (select Code
-                                                 from MasterUser u
-                                                          join Department D on u.DepartmentId = D.DepartmentId
-                                                 where UserId = @initiatorUserId);
-
             set @dynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @userFromLeaf + ';';
 
             EXEC sp_executesql @dynamicSQL;
@@ -105,16 +122,9 @@ BEGIN
             update Account SET Balance = @currentFromAccountBalance - @amount WHERE AccountNumber = @fromAccountNumber;
         end
 
-    if @toAccountNumber is not null
+    if @toAccountNumber is not null and @userFromLeaf != @userToLeaf
         begin
             -- create transactions
-            declare @userToId uniqueidentifier = (select UserId from Account where AccountNumber = @toAccountNumber);
-
-            declare @userToLeaf varchar(50) = (select Code
-                                               from MasterUser u
-                                                        join Department D on u.DepartmentId = D.DepartmentId
-                                               where UserId = @userToId);
-
             set @dynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @userToLeaf + ';';
 
             EXEC sp_executesql @dynamicSQL;
