@@ -11,7 +11,7 @@ public partial class Account
 
     public string AccountNumber { get; set; }
 
-    public decimal Balance { get; set; }
+    public decimal? Balance { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

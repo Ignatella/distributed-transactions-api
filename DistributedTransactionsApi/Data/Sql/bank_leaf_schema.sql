@@ -30,7 +30,7 @@ create table [Transaction]
         primary key,
     FromAccountId uniqueidentifier,
     ToAccountId   uniqueidentifier,
-    Amount        money                                 not null,
+    Amount        money,
     Description   varchar(150),
     CreatedAt     datetime         default getutcdate() not null,
     constraint CH_AccountId_NOT_NULL
@@ -38,7 +38,25 @@ create table [Transaction]
 )
 go
 
-CREATE   PROCEDURE uspGetUserAccounts(@userId uniqueidentifier)
+
+CREATE    PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
+                                    @toAccountNumber VARCHAR(26),
+                                    @amount money, @description varchar(150) = NULL)
+AS
+BEGIN
+    set xact_abort on;
+    BEGIN DISTRIBUTED Transaction;
+
+    EXEC Central.bank.dbo.uspCreateTransaction @initiatorUserId = @initiatorUserId,
+         @fromAccountNumber = @fromAccountNumber,
+         @toAccountNumber = @toAccountNumber, @amount = @amount, @description = @description;
+
+    COMMIT TRANSACTION;
+end;
+
+go
+
+CREATE    PROCEDURE uspGetUserAccounts(@userId uniqueidentifier)
 AS
 BEGIN
     set xact_abort on;
@@ -50,7 +68,7 @@ BEGIN
 end
 go
 
-    CREATE   PROCEDURE uspGetUserTransactions(@userId uniqueidentifier)
+CREATE    PROCEDURE uspGetUserTransactions(@userId uniqueidentifier)
     AS
     BEGIN
         set xact_abort on;
@@ -73,6 +91,27 @@ go
 
         COMMIT TRANSACTION;
     end;
+go
+
+
+CREATE      PROCEDURE uspSystemCreateTransaction(@fromAccountId uniqueidentifier, @toAccountId uniqueidentifier,
+                                                 @amount money, @description varchar(150) = null)
+AS
+BEGIN
+    INSERT INTO [Transaction] (FromAccountId, ToAccountId, Amount, Description)
+    VALUES (@fromAccountId, @toAccountId, @amount, @description);
+end;
+
+
+go
+
+create   proc uspTest (@wow uniqueidentifier)
+as
+begin
+
+    select 'hello world';
+
+end
 go
 
 

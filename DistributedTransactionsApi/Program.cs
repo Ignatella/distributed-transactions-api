@@ -16,6 +16,7 @@ builder.Services.AddScoped<UserUtility>();
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DepartmentService>();
+builder.Services.AddScoped<TransactionService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

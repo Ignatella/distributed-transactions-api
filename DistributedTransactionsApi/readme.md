@@ -5,7 +5,7 @@ In order to scaffold context use:
 #### Leaf
 
 ```bash
-dotnet ef dbcontext scaffold "Name=Leaf1"  Microsoft.EntityFrameworkCore.SqlServer -f --no-onconfiguring --context BankLeafContext --context-dir Data --output-dir Data/Models/Leaf/
+dotnet ef dbcontext scaffold "Name=Leaf_1"  Microsoft.EntityFrameworkCore.SqlServer -f --no-onconfiguring --context BankLeafContext --context-dir Data --output-dir Data/Models/Leaf/
 ```
 
 #### Master

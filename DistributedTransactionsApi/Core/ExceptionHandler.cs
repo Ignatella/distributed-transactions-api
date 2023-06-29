@@ -20,6 +20,8 @@ internal static class ExceptionHandler
                 {
                     if (exceptionHandlerFeature.Error is ApplicationException ex)
                     {
+                        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        
                         await context.Response.WriteAsync(ex.Message);
                         return;
                     }

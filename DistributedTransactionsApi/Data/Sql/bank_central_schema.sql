@@ -37,13 +37,92 @@ create table Account
             references AccountType,
     AccountNumber varchar(26)                           not null
         check (len([AccountNumber]) > 1),
-    Balance       money                                 not null,
+    Balance       money,
     CreatedAt     datetime         default getutcdate() not null,
     UserId        uniqueidentifier                      not null
         constraint FK_Account_User
             references MasterUser
             on delete cascade
 )
+go
+
+CREATE   PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
+                                               @toAccountNumber VARCHAR(26),
+                                               @amount money, @description varchar(150) = NULL)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN DISTRIBUTED TRANSACTION;
+
+    -- from account should belong to the initiator
+    IF @fromAccountNumber is NOT NULL AND
+       NOT EXISTS(SELECT * FROM Account A WHERE A.AccountNumber = @fromAccountNumber AND A.UserId = @initiatorUserId)
+        BEGIN
+            THROW 51001, 'Account does not belong to the user', 1;
+        end
+
+    -- if user deposit money it should be done on his account
+    IF @fromAccountNumber is NULL AND
+       NOT EXISTS(SELECT * FROM Account A WHERE A.AccountNumber = @toAccountNumber AND A.UserId = @initiatorUserId)
+        BEGIN
+            THROW 51002, 'Account does not belong to the user', 1;
+        end
+
+    declare @fromAccountId uniqueidentifier = (select AccountId from Account where AccountNumber = @fromAccountNumber);
+    declare @toAccountId uniqueidentifier = (select AccountId from Account where AccountNumber = @toAccountNumber);
+
+    declare @currentFromAccountBalance double precision = (select Balance from Account where AccountNumber = @fromAccountNumber);
+    declare @currentToAccountBalance double precision = (select Balance from Account where AccountNumber = @toAccountNumber);
+
+    if @currentFromAccountBalance - @amount < 0
+        begin
+            THROW 51003, 'Insufficient funds in the account.', 1;
+        end
+
+    declare @sql varchar(max) = N'EXEC uspSystemCreateTransaction ' +
+                                N'@fromAccountId=' + coalesce('''' + convert(varchar(36), @fromAccountId) + '''', 'null') + ', ' +
+                                N'@toAccountId=' + coalesce('''' + convert(varchar(50), @toAccountId) + '''', 'null') + ', ' +
+                                N'@amount=' + convert(varchar(max), @amount) + ', ' +
+                                N'@description=' + coalesce('''' + @description + '''', 'null') + ';';
+
+    declare @dynamicSQL nvarchar(max);
+
+    if @fromAccountNumber is not null
+        begin
+
+            -- create transactions
+            declare @userFromLeaf varchar(50) = (select Code
+                                                 from MasterUser u
+                                                          join Department D on u.DepartmentId = D.DepartmentId
+                                                 where UserId = @initiatorUserId);
+
+            set @dynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @userFromLeaf + ';';
+
+            EXEC sp_executesql @dynamicSQL;
+
+            update Account SET Balance = @currentFromAccountBalance - @amount WHERE AccountNumber = @fromAccountNumber;
+        end
+
+    if @toAccountNumber is not null
+        begin
+            -- create transactions
+            declare @userToId uniqueidentifier = (select UserId from Account where AccountNumber = @toAccountNumber);
+
+            declare @userToLeaf varchar(50) = (select Code
+                                               from MasterUser u
+                                                        join Department D on u.DepartmentId = D.DepartmentId
+                                               where UserId = @userToId);
+
+            set @dynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @userToLeaf + ';';
+
+            EXEC sp_executesql @dynamicSQL;
+
+            update Account SET Balance = @currentToAccountBalance + @amount WHERE AccountNumber = @toAccountNumber;
+        end
+    COMMIT TRANSACTION;
+end;
 go
 
 CREATE   PROCEDURE dbo.uspGenerateAccountNumber
