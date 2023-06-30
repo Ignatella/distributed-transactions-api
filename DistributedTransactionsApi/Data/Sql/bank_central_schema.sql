@@ -46,10 +46,17 @@ create table Account
 )
 go
 
+create   proc uspClearDatabases
+    as
+begin
+    exec uspRunSqlOnLeaves 'delete from [Transaction]; delete from [LeafUser]; delete from [Address]';
+    delete from MasterUser;
+end
+go
 
-CREATE    PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
-                                               @toAccountNumber VARCHAR(26),
-                                               @amount money, @description varchar(150) = NULL)
+CREATE PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
+                                      @toAccountNumber VARCHAR(26),
+                                      @amount money, @description varchar(150) = NULL)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -118,19 +125,20 @@ BEGIN
             set @dynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @userFromLeaf + ';';
 
             EXEC sp_executesql @dynamicSQL;
-
-            update Account SET Balance = @currentFromAccountBalance - @amount WHERE AccountNumber = @fromAccountNumber;
         end
 
-    if @toAccountNumber is not null and /* is not transaction in the same leaf */ (@fromAccountNumber is null or @userFromLeaf != @userToLeaf)
+    if @toAccountNumber is not null and /* is not transaction in the same leaf */
+       (@fromAccountNumber is null or @userFromLeaf != @userToLeaf)
         begin
             -- create transactions
             set @dynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @userToLeaf + ';';
 
             EXEC sp_executesql @dynamicSQL;
-
-            update Account SET Balance = @currentToAccountBalance + @amount WHERE AccountNumber = @toAccountNumber;
         end
+
+    update Account SET Balance = @currentFromAccountBalance - @amount WHERE AccountNumber = @fromAccountNumber;
+    update Account SET Balance = @currentToAccountBalance + @amount WHERE AccountNumber = @toAccountNumber;
+
     COMMIT TRANSACTION;
 end;
 go
@@ -171,7 +179,8 @@ BEGIN
            T.CreatedAt
     FROM Account A
              JOIN AccountType T on A.AccountTypeId = T.AccountTypeId
-    where UserId = @userId;
+    where UserId = @userId
+    order by A.CreatedAt;
 end
 go
 
