@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedTransactionsApi", "DistributedTransactionsApi\DistributedTransactionsApi.csproj", "{21C7CB0F-B103-49F4-BCCD-81625BA2EA21}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistributedTransactionsTests", "DistributedTransactionsTests\DistributedTransactionsTests.csproj", "{5F69AF08-2960-4E04-AA8A-A0788D18E151}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{21C7CB0F-B103-49F4-BCCD-81625BA2EA21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21C7CB0F-B103-49F4-BCCD-81625BA2EA21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21C7CB0F-B103-49F4-BCCD-81625BA2EA21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F69AF08-2960-4E04-AA8A-A0788D18E151}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F69AF08-2960-4E04-AA8A-A0788D18E151}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F69AF08-2960-4E04-AA8A-A0788D18E151}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F69AF08-2960-4E04-AA8A-A0788D18E151}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

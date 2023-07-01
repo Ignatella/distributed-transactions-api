@@ -54,6 +54,64 @@ begin
 end
 go
 
+create   proc serviceRemoveUser(@userId uniqueidentifier)
+as
+begin
+    set xact_abort on;
+
+    begin distributed transaction
+
+        declare @sql varchar(500) = 'exec serviceRemoveUser @userId=' + '''' + convert(varchar(36), @userId) + '''';
+        exec serviceRunSqlOnLeaves @sql;
+
+        delete from MasterUser where UserId = @userId;
+
+    commit transaction
+end
+
+go
+
+CREATE   PROCEDURE serviceRunSqlOnLeaves @sql nvarchar(MAX)
+AS
+BEGIN
+    SET XACT_ABORT  ON;
+    BEGIN DISTRIBUTED TRANSACTION;
+
+    -- Get the list of linked servers starting with a specific name
+    DECLARE @LinkedServerNamePrefix NVARCHAR(100) = 'Leaf_';
+    DECLARE @LinkedServerName NVARCHAR(100);
+    DECLARE @DynamicSQL NVARCHAR(MAX);
+
+    DECLARE LinkedServerCursor CURSOR FOR
+        SELECT name
+        FROM sys.servers
+        WHERE is_linked = 1
+          AND name LIKE @LinkedServerNamePrefix + '%';
+
+    OPEN LinkedServerCursor;
+
+    FETCH NEXT FROM LinkedServerCursor INTO @LinkedServerName;
+
+    WHILE @@FETCH_STATUS = 0
+        BEGIN
+
+            print @LinkedServerName;
+            -- Execute the command on each linked server
+            SET @DynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @LinkedServerName + ';';
+            EXEC sp_executesql @DynamicSQL;
+
+            FETCH NEXT FROM LinkedServerCursor INTO @LinkedServerName;
+        END;
+
+    CLOSE LinkedServerCursor;
+    DEALLOCATE LinkedServerCursor;
+
+    -- Commit the distributed transaction
+    COMMIT TRANSACTION;
+END;
+
+go
+
 CREATE PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
                                       @toAccountNumber VARCHAR(26),
                                       @amount money, @description varchar(150) = NULL)
@@ -182,46 +240,6 @@ BEGIN
     where UserId = @userId
     order by A.CreatedAt;
 end
-go
-
-
-CREATE   PROCEDURE usp_Run_Sql_On_Leaves @sql nvarchar(MAX)
-AS
-BEGIN
-    BEGIN DISTRIBUTED TRANSACTION;
-
-    -- Get the list of linked servers starting with a specific name
-    DECLARE @LinkedServerNamePrefix NVARCHAR(100) = 'Leaf_';
-    DECLARE @LinkedServerName NVARCHAR(100);
-    DECLARE @DynamicSQL NVARCHAR(MAX);
-
-    DECLARE LinkedServerCursor CURSOR FOR
-        SELECT name
-        FROM sys.servers
-        WHERE is_linked = 1
-          AND name LIKE @LinkedServerNamePrefix + '%';
-
-    OPEN LinkedServerCursor;
-
-    FETCH NEXT FROM LinkedServerCursor INTO @LinkedServerName;
-
-    WHILE @@FETCH_STATUS = 0
-        BEGIN
-
-            print @LinkedServerName;
-            -- Execute the command on each linked server
-            SET @DynamicSQL = 'EXECUTE(''' + REPLACE(@sql, '''', '''''') + ''') AT ' + @LinkedServerName + ';';
-            EXEC sp_executesql @DynamicSQL;
-
-            FETCH NEXT FROM LinkedServerCursor INTO @LinkedServerName;
-        END;
-
-    CLOSE LinkedServerCursor;
-    DEALLOCATE LinkedServerCursor;
-
-    -- Commit the distributed transaction
-    COMMIT TRANSACTION;
-END;
 go
 
 

@@ -1,4 +1,5 @@
 using DistributedTransactionsApi.Core;
+using DistributedTransactionsApi.Interfaces;
 using DistributedTransactionsApi.Services;
 using DistributedTransactionsApi.Shared;
 using DistributedTransactionsApi.Utilities;
@@ -12,7 +13,7 @@ builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<UserUtility>();
+builder.Services.AddScoped<IUserUtility, UserUtility>();
 
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DepartmentService>();

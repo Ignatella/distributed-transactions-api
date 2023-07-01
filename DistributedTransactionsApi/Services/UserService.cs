@@ -3,6 +3,7 @@ using Dapper;
 using DistributedTransactionsApi.Data;
 using DistributedTransactionsApi.Data.Models.Leaf;
 using DistributedTransactionsApi.Data.Models.Master;
+using DistributedTransactionsApi.Interfaces;
 using DistributedTransactionsApi.Utilities;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,9 +12,9 @@ namespace DistributedTransactionsApi.Services;
 public class UserService
 {
     private readonly BankMasterContext _masterContext;
-    private readonly UserUtility _userUtility;
+    private readonly IUserUtility _userUtility;
 
-    public UserService(BankMasterContext masterContext, UserUtility userUtility)
+    public UserService(BankMasterContext masterContext, IUserUtility userUtility)
     {
         _masterContext = masterContext;
         _userUtility = userUtility;
@@ -36,7 +37,7 @@ public class UserService
 
         var context = await _userUtility.GetUserLeafContextAsync();
 
-        await using var connection = context.Database.GetDbConnection();
+        var connection = context.Database.GetDbConnection();
 
         var param = new
         {
@@ -59,7 +60,7 @@ public class UserService
 
         var context = await _userUtility.GetUserLeafContextAsync();
 
-        await using var connection = context.Database.GetDbConnection();
+        var connection = context.Database.GetDbConnection();
 
         var param = new
         {
@@ -76,7 +77,7 @@ public class UserService
     {
         var context = await _userUtility.GetLeafContextAsync(user.DepartmentId);
 
-        await using var connection = context.Database.GetDbConnection();
+        var connection = context.Database.GetDbConnection();
 
         var userParameters = new
         {

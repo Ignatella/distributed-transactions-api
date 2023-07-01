@@ -1,6 +1,6 @@
 using System.Data;
 using Dapper;
-using DistributedTransactionsApi.Utilities;
+using DistributedTransactionsApi.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +8,9 @@ namespace DistributedTransactionsApi.Services;
 
 public class TransactionService
 {
-    private readonly UserUtility _userUtility;
+    private readonly IUserUtility _userUtility;
 
-    public TransactionService(UserUtility userUtility)
+    public TransactionService(IUserUtility userUtility)
     {
         _userUtility = userUtility;
     }
@@ -22,7 +22,7 @@ public class TransactionService
 
         var context = await _userUtility.GetUserLeafContextAsync();
 
-        await using var connection = context.Database.GetDbConnection();
+        var connection = context.Database.GetDbConnection();
 
         var param = new DynamicParameters();
 
@@ -36,7 +36,7 @@ public class TransactionService
         {
             await connection.ExecuteAsync("uspCreateTransaction", param, commandType: CommandType.StoredProcedure);
         }
-        catch (SqlException ex) when (Enumerable.Range(51001, 3).Contains(ex.Number))
+        catch (SqlException ex) when (ex.Number is > 51000 and < 52000)
         {
             throw new ApplicationException(ex.Message);
         }

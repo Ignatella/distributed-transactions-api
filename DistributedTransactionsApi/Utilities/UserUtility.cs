@@ -1,11 +1,12 @@
 using System.Security.Claims;
 using DistributedTransactionsApi.Data;
 using DistributedTransactionsApi.Data.Models.Master;
+using DistributedTransactionsApi.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace DistributedTransactionsApi.Utilities;
 
-public class UserUtility
+public class UserUtility : IUserUtility
 {
     private readonly BankMasterContext _masterContext;
     private readonly Func<string, BankLeafContext> _leafContextFactory;

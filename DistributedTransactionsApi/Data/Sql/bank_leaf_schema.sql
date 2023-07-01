@@ -38,6 +38,75 @@ create table [Transaction]
 )
 go
 
+create    proc serviceRemoveUser(@userId uniqueidentifier)
+as
+begin
+
+    set xact_abort on;
+
+    begin distributed transaction
+        DECLARE @addressId uniqueidentifier = (select u.AddressId from LeafUser u where UserId = @userId);
+        delete from LeafUser where UserId = @userId;
+        delete from Address where AddressId = @addressId;
+
+        -- get all local user accounts
+        CREATE TABLE #Accounts
+        (
+            AccountId uniqueidentifier
+        );
+
+        DECLARE @currentUserId uniqueidentifier;
+
+        DECLARE userCursor CURSOR FOR SELECT userId from LeafUser;
+
+        OPEN userCursor;
+
+        FETCH NEXT FROM userCursor INTO @currentUserId;
+
+        WHILE @@FETCH_STATUS = 0
+            BEGIN
+                -- Execute the remote procedure and insert the result into the temporary table
+
+                INSERT INTO #Accounts EXEC Central.bank.dbo.uspGetUserAccountIds @userId = @currentUserId;
+
+                -- Fetch the next row
+                FETCH NEXT FROM userCursor INTO @currentUserId;
+            END;
+
+        CLOSE userCursor;
+        DEALLOCATE userCursor;
+
+        -- foreign withdraw
+        delete
+        from [Transaction]
+        where FromAccountId is not null
+          and FromAccountId not in (select AccountId from #Accounts)
+          and ToAccountId is null;
+        -- foreign deposit
+        delete
+        from [Transaction]
+        where FromAccountId is null
+          and ToAccountId is not null
+          and ToAccountId not in (select AccountId from #Accounts);
+        -- foreign transaction (from, to)
+        delete
+        from [Transaction]
+        where FromAccountId is not null
+          and ToAccountId is not null
+          and FromAccountId not in (select AccountId from #Accounts)
+          and ToAccountId not in (select AccountId from #Accounts);
+        -- from this account
+        update [Transaction] set FromAccountId = null where FromAccountId not in (select AccountId from #Accounts);
+        -- to this account
+        update [Transaction] set ToAccountId = null where ToAccountId not in (select AccountId from #Accounts);
+
+
+    commit transaction
+end
+
+
+go
+
 
 CREATE      PROCEDURE uspCreateTransaction(@initiatorUserId uniqueidentifier, @fromAccountNumber VARCHAR(26),
                                     @toAccountNumber VARCHAR(26),
