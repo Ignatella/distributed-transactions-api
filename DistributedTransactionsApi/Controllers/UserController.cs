@@ -2,8 +2,8 @@ using AutoMapper;
 using DistributedTransactionsApi.Data;
 using DistributedTransactionsApi.Data.Models.Leaf;
 using DistributedTransactionsApi.Dtos;
+using DistributedTransactionsApi.Interfaces;
 using DistributedTransactionsApi.Services;
-using DistributedTransactionsApi.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,13 +14,13 @@ namespace DistributedTransactionsApi.Controllers;
 public class UserController : ControllerBase
 {
     private readonly BankMasterContext _masterContext;
-    private readonly UserUtility _userUtility;
     private readonly UserService _userService;
+    private readonly IUserUtility _userUtility;
     private readonly IMapper _mapper;
 
     public UserController(
         BankMasterContext masterContext,
-        UserUtility userUtility,
+        IUserUtility userUtility,
         UserService userService,
         IMapper mapper)
     {
